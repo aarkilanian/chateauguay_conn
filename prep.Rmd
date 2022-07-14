@@ -1,0 +1,32 @@
+---
+title: "draft_prep"
+author: "Alex Arkilanian"
+date: "7/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+require(sf)
+```
+
+## Introduction
+
+Connectivity analyses presented in this report are calculated by the [`dci` package](https://github.com/aarkilanian/dci). To calculate connectivity on the rivers of a target watershed using `dci` it is required to have geospatial data on rivers and barriers within the watershed. The specific data required for each of these is explained in greater detail in subsequent sections.
+
+To begin the raw data is loaded here which will be prepped and cleaned in the rest of this document to finally be ready for the `dci` package's connectivity analyses.
+
+```{r}
+chat_extent <- read_sf()
+```
+
+
+### River data
+
+The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intercest correctly and don't braid over each other.
+
+In this first data preparation step we will import the river lines from the 
+
+### Barrier data
