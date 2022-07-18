@@ -10,23 +10,97 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
 require(sf)
+
+st_snap_points = function(x, y, max_dist = 1000) {
+
+  if (inherits(x, "sf")) n = nrow(x)
+  if (inherits(x, "sfc")) n = length(x)
+
+  out = do.call(c,
+                lapply(seq(n), function(i) {
+                  nrst = st_nearest_points(st_geometry(x)[i], y)
+                  nrst_len = st_length(nrst)
+                  nrst_mn = which.min(nrst_len)
+                  if (as.vector(nrst_len[nrst_mn]) > max_dist) return(st_geometry(x)[i])
+                  return(st_cast(nrst[nrst_mn], "POINT")[2])
+                })
+  )
+  return(out)
+}
 ```
 
 ## Introduction
 
-Connectivity analyses presented in this report are calculated by the [`dci` package](https://github.com/aarkilanian/dci). To calculate connectivity on the rivers of a target watershed using `dci` it is required to have geospatial data on rivers and barriers within the watershed. The specific data required for each of these is explained in greater detail in subsequent sections.
-
-To begin the raw data is loaded here which will be prepped and cleaned in the rest of this document to finally be ready for the `dci` package's connectivity analyses.
-
-```{r}
-chat_extent <- read_sf()
-```
-
+Connectivity analyses presented in this report are calculated by the [`dci` package](https://github.com/aarkilanian/dci). To calculate connectivity on the rivers of a target watershed using `dci` it is required to have spatial data on rivers and barriers within the watershed. The specific data required for each of these is explained in greater detail in subsequent sections.
 
 ### River data
 
-The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intercest correctly and don't braid over each other.
+The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intersect correctly and don't braid over each other.
 
-In this first data preparation step we will import the river lines from the 
+In this first data preparation step we will import the river lines from the GRHQ and perform some quick cleaning to extract only those rivers which are valid in a network analysis context.
+```{r}
+grhq_raw <- read_sf("data/inputs.gpkg", layer = "rivers")
+
+# Filter out rivers with "ENABLED" set to 0
+# The "ENABLED" field specifically relates to rivers which do (1) or do not (0) participate in the river network.
+grhq_clean <- grhq_raw %>%
+  filter(ENABLED == 1) %>%
+  st_zm()
+```
+
+In addition to this quick cleaning some of the Chateauguay watershed is found across the Canadian border in the Unites States of America. For this reason, the rivers must be clipped to only include sub-watersheds of the Chateauguay which lie entirely north of the border.
+```{r}
+canada_extent <- read_sf("data/inputs.gpkg", layer = "canada") %>%
+  st_transform(st_crs(grhq_clean))
+
+# Extract only rivers within Canadian borders
+# Takes long - commented out
+#
+# chat_riv <- grhq_clean %>%
+#   st_filter(canada_extent)
+
+# Write cleaned rivers
+# write_sf(chat_riv, dsn = "data/inputs.gpkg", layer = "rivers_clean")
+
+# Load cleaned rivers
+chat_riv <- read_sf("data/inputs.gpkg", "rivers_clean")
+
+# View clipped rivers
+plot(st_geometry(grhq_clean), col = "red")
+plot(st_geometry(chat_riv), add = T)
+```
+
+This operation of clipping the rivers at the border will leave behind some disconnected river segments. These segment will be removed with the `dci` package's cleaning functions.
 
 ### Barrier data
+
+There are 3 types of barrier data which are considered and each come from a separate open data source:
+
+* **Dams** are imported from the [MELCC webpage](https://www.cehq.gouv.qc.ca/barrages/default.asp#version-telechargeable)
+* **Culverts** are imported from the [MTQ's Structure dataset](https://www.donneesquebec.ca/recherche/dataset/structure). Culverts are specified with the "code_des_t" codes of 11 through 21 inclusively.
+* **Waterfalls** are extracted directly from the point data included in the GRHQ. This corresponds to the C_hyd_p layer in the GRHQ GeoDatabase.
+
+The culvert and dam data need to be clipped to the Chateauguay region. In addition we will clip these point data to the river lines.
+```{r}
+# Import raw data
+culverts <- read_sf("data/inputs.gpkg", layer = "culverts") %>%
+  st_transform(st_crs(chat_riv))
+dams <- read_sf("data/inputs.gpkg", layer = "dams")
+falls <- read_sf("data/inputs.gpkg", layer = "falls")
+
+# Extract bounding box of Chateauguay rivers
+chat_bbox <- st_as_sfc(st_bbox(chat_riv))
+
+# Clip culvert and dams to the correct region
+chat_culv <- culverts %>%
+  st_filter(chat_bbox)
+chat_dams <- dams %>%
+  st_filter(chat_bbox)
+
+# Snap culverts and dams
+# Done in QGIS using 50m threshold
+# Intersect and extract with rivers
+chat_culv <- read_sf("data/inputs.gpkg", "culv_snap")
+chat_dams <- read_sf("data/inputs.gpkg", "dams_snap")
+```
+
