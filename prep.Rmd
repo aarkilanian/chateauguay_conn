@@ -36,7 +36,7 @@ Connectivity analyses presented in this report are calculated by the [`dci` pack
 
 ### River data
 
-The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intersect correctly and don't braid over each other.
+The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intersect correctly and don't braid over each other. The Chateauguay watershed is identified as 03AB in the GRHQ.
 
 In this first data preparation step we will import the river lines from the GRHQ and perform some quick cleaning to extract only those rivers which are valid in a network analysis context.
 ```{r}
@@ -51,16 +51,14 @@ grhq_clean <- grhq_raw %>%
 
 In addition to this quick cleaning some of the Chateauguay watershed is found across the Canadian border in the Unites States of America. For this reason, the rivers must be clipped to only include sub-watersheds of the Chateauguay which lie entirely north of the border.
 ```{r}
+# Extract only rivers within Canadian borders
+# Takes long - commented out
 canada_extent <- read_sf("data/inputs.gpkg", layer = "canada") %>%
   st_transform(st_crs(grhq_clean))
 
-# Extract only rivers within Canadian borders
-# Takes long - commented out
-#
 chat_riv <- grhq_clean %>%
   st_filter(canada_extent)
 
-# Write cleaned rivers
 write_sf(chat_riv, dsn = "data/inputs.gpkg", layer = "rivers_clean")
 
 # Load cleaned rivers
@@ -71,7 +69,7 @@ plot(st_geometry(grhq_clean), col = "red")
 plot(st_geometry(chat_riv))
 ```
 
-This operation of clipping the rivers at the border will leave behind some disconnected river segments. These segment will be removed with the `dci` package's cleaning functions.
+This operation of clipping the rivers at the border will leave behind some disconnected river segments. These segment will be removed with the `dci` package's cleaning functions. This further cleaning will be done in a later section.
 
 ### Barrier data
 
@@ -85,9 +83,22 @@ The culvert and dam data need to be clipped to the Chateauguay region. In additi
 ```{r}
 # Import raw data
 culverts <- read_sf("data/inputs.gpkg", layer = "culverts") %>%
-  st_transform(st_crs(chat_riv))
-dams <- read_sf("data/inputs.gpkg", layer = "dams")
-falls <- read_sf("data/inputs.gpkg", layer = "falls")
+  st_transform(st_crs(chat_riv))  %>%
+  rename("original_id" = "ide_strct") %>%
+  mutate(original_id = as.character(original_id)) %>%
+  mutate(type = "culvert") %>%
+  select(original_id, type, geom)
+dams <- read_sf("data/inputs.gpkg", layer = "dams") %>%
+  st_transform(st_crs(chat_riv)) %>%
+  rename("original_id" = "Numéro.ba") %>%
+  mutate(type = "dam") %>%
+  select(original_id, type, geom)
+falls <- read_sf("data/inputs.gpkg", layer = "falls") %>%
+  st_zm() %>%
+  st_transform(st_crs(chat_riv)) %>%
+  rename("original_id" = "ID_RHP") %>%
+  mutate(type = "waterfall") %>%
+  select(original_id, type, geom)
 
 # Extract bounding box of Chateauguay rivers
 chat_bbox <- st_as_sfc(st_bbox(chat_riv))
@@ -101,11 +112,21 @@ chat_dams <- dams %>%
 # Snap culverts and dams
 # Done in QGIS using 50m threshold
 # Intersect and extract with rivers
-chat_culv <- read_sf("data/inputs.gpkg", "culv_snap")
-chat_dams <- read_sf("data/inputs.gpkg", "dams_snap")
+# chat_culv <- read_sf("data/inputs.gpkg", "culv_snap")
+# chat_dams <- read_sf("data/inputs.gpkg", "dams_snap")
 
-# Join barriers together
-chat_bars <- bind_rows(chat_culv, chat_dams)
+# Combine barriers
+chat_bars <- bind_rows(culverts, dams, falls)
+
+# Create 5m buffer around rivers to select only barriers on rivers
+riv_buff <- st_buffer(chat_riv, dist = 5)
+
+# Select barriers within 5m buffer
+chat_bars <- chat_bars %>%
+  st_filter(riv_buff)
+
+# Snap barriers to rivers
+st_geometry(chat_bars) <- st_snap_points(chat_bars, chat_riv, max_dist = 5)
 
 # Import outlet
 chat_out <- read_sf("data/inputs.gpkg", "outlet")
