@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
 require(sf)
+require(dplyr)
 
 st_snap_points = function(x, y, max_dist = 1000) {
 
@@ -44,7 +45,7 @@ grhq_raw <- read_sf("data/inputs.gpkg", layer = "rivers")
 # Filter out rivers with "ENABLED" set to 0
 # The "ENABLED" field specifically relates to rivers which do (1) or do not (0) participate in the river network.
 grhq_clean <- grhq_raw %>%
-  filter(ENABLED == 1) %>%
+  filter(ENABLED == 1 | ENABLED == 2) %>%
   st_zm()
 ```
 
@@ -56,18 +57,18 @@ canada_extent <- read_sf("data/inputs.gpkg", layer = "canada") %>%
 # Extract only rivers within Canadian borders
 # Takes long - commented out
 #
-# chat_riv <- grhq_clean %>%
-#   st_filter(canada_extent)
+chat_riv <- grhq_clean %>%
+  st_filter(canada_extent)
 
 # Write cleaned rivers
-# write_sf(chat_riv, dsn = "data/inputs.gpkg", layer = "rivers_clean")
+write_sf(chat_riv, dsn = "data/inputs.gpkg", layer = "rivers_clean")
 
 # Load cleaned rivers
 chat_riv <- read_sf("data/inputs.gpkg", "rivers_clean")
 
 # View clipped rivers
 plot(st_geometry(grhq_clean), col = "red")
-plot(st_geometry(chat_riv), add = T)
+plot(st_geometry(chat_riv))
 ```
 
 This operation of clipping the rivers at the border will leave behind some disconnected river segments. These segment will be removed with the `dci` package's cleaning functions.
@@ -102,5 +103,26 @@ chat_dams <- dams %>%
 # Intersect and extract with rivers
 chat_culv <- read_sf("data/inputs.gpkg", "culv_snap")
 chat_dams <- read_sf("data/inputs.gpkg", "dams_snap")
+
+# Join barriers together
+chat_bars <- bind_rows(chat_culv, chat_dams)
+
+# Import outlet
+chat_out <- read_sf("data/inputs.gpkg", "outlet")
+
+# Plot full network
+plot(st_geometry(chat_riv))
+plot(st_geometry(chat_bars), add = TRUE, col = "red", pch = 20, cex = 0.8)
+```
+
+```{r}
+require(dci)
+
+# Prepare rivers
+chat_riv <- import_rivers(chat_riv)
+
+chat_net <- river_net(rivers = chat_riv, 
+                      barriers = chat_bars,
+                      outlet = )
 ```
 
