@@ -49,7 +49,7 @@ grhq_clean <- grhq_raw %>%
   st_zm()
 ```
 
-In addition to this quick cleaning some of the Chateauguay watershed is found across the Canadian border in the Unites States of America. For this reason, the rivers must be clipped to only include sub-watersheds of the Chateauguay which lie entirely north of the border.
+In addition to this quick cleaning some of the Chateauguay watershed is found across the Canadian border in the USA. For this reason, the rivers must be clipped to only include sub-watersheds of the Chateauguay which lie entirely north of the border.
 ```{r}
 # Extract only rivers within Canadian borders
 # Takes long - commented out
@@ -62,11 +62,11 @@ chat_riv <- grhq_clean %>%
 write_sf(chat_riv, dsn = "data/inputs.gpkg", layer = "rivers_clean")
 
 # Load cleaned rivers
-chat_riv <- read_sf("data/inputs.gpkg", "rivers_clean")
+chat_riv <- read_sf("data/inputs.gpkg", "rivers_clean_enforced")
 
 # View clipped rivers
 plot(st_geometry(grhq_clean), col = "red")
-plot(st_geometry(chat_riv))
+plot(st_geometry(chat_riv), add = TRUE)
 ```
 
 This operation of clipping the rivers at the border will leave behind some disconnected river segments. These segment will be removed with the `dci` package's cleaning functions. This further cleaning will be done in a later section.
