@@ -126,7 +126,7 @@ This filtering requires a spatial layer of the boundaries of the province of Que
 
 ```{r eval=FALSE}
 # Read in Quebec boundary
-qc_extent <- read_sf("data/inputs_new.gpkg", layer = "quebec_boundary") %>%
+qc_extent <- read_sf("data/chat_data.gpkg", layer = "qc_extent") %>%
   # Match river project
   st_transform(st_crs(grhq_raw))
 
