@@ -16,22 +16,22 @@ This guide will walk a user through a longitudinal connectivity analysis of the 
 
 At its base the DCI is a simple measure of structural connectivity and weighs all river reaches the same. However, the `dci` package allows for a biased calculation of connectivity which favors certain highly weighted reaches as more important to the watershed's regional connectivity. This weighting scheme is explored in the guide using urban and agricultural land use as proxies for fish habitat quality.
 
-Finally the workflow presented here is developed with the objective of rendering a ranking of river reaches in a watershed based on their importance to regional connectivity in the short and long term. To this end a ranking is developed which combines multiple slightly different formulations of the DCI to try and capture the multiple facets of connectivity. In this formulation, there is a total of 3 different connectivity metrics calculated each for a different aspect of connectivity important for fish conservation: a long term measure, a short term measure which uses a dispersal threshold typical of a 4 week spawning season (14km, retrieved from Comte & Olden, 2018), and an invasive measure which measures the watershed's connectivity to the source of invasive species at the mouth of the watershed. Additionally, in an effort to ensure these connectivity prioritizations remain robust in the face of habitat restoration in the region these metrics are recalculated for 4 levels of randomized restoration across the watershed. This leaves a total of 12 connectivity metrics
+Finally, the workflow presented here is developed with the objective of rendering a ranking of river reaches in a watershed based on their importance to regional connectivity in the short and long term. To this end, a ranking is developed which combines multiple slightly different formulations of the DCI to capture the multiple facets of connectivity. In this formulation, there is a total of 3 different connectivity metrics calculated each for a different aspect of connectivity important for fish conservation: a long term measure, a short term measure which uses a dispersal threshold typical of a 4 week spawning season (14km, retrieved from Comte & Olden, 2018), and an invasive measure which measures the watershed's connectivity to the source of invasive species at the mouth of the watershed. Additionally, in an effort to ensure these connectivity prioritizations remain robust in the face of habitat restoration in the region these metrics are recalculated for 4 levels of randomized restoration across the watershed. This leaves a total of 12 connectivity metrics.
 
-|Scenario|Metric
-|--------|------
-|0% restoration|long-term DCI
-|0% restoration|short-term DCI
-|0% restoration|invasive DCI
-|25% restoration|long-term DCI
-|25% restoration|short-term DCI
-|25% restoration|invasive DCI
-|50% restoration|long-term DCI
-|50% restoration|short-term DCI
-|50% restoration|invasive DCI
-|75% restoration|long-term DCI
-|75% restoration|short-term DCI
-|75% restoration|invasive DCI
+| Scenario        | Metric         |
+|-----------------|----------------|
+| 0% restoration  | long-term DCI  |
+| 0% restoration  | short-term DCI |
+| 0% restoration  | invasive DCI   |
+| 25% restoration | long-term DCI  |
+| 25% restoration | short-term DCI |
+| 25% restoration | invasive DCI   |
+| 50% restoration | long-term DCI  |
+| 50% restoration | short-term DCI |
+| 50% restoration | invasive DCI   |
+| 75% restoration | long-term DCI  |
+| 75% restoration | short-term DCI |
+| 75% restoration | invasive DCI   |
 
 A 13th metric not considered here due to a lack of data is cultural value associated with certain river reaches. This quality of rivers could simply be integrated into the eventual rankings in the final section of this user guide.
 
@@ -39,7 +39,7 @@ A 13th metric not considered here due to a lack of data is cultural value associ
 
 ### River data
 
-The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intersect correctly and don't braid over each other. The Chateauguay watershed is identified as 03AB in the GRHQ and the river lines are found in the "RH_L" layer. Note that this data layer includes some additional river lines which are not admissible in network analyses. Luckily these are identified in the GRHQ with the `ENABLED` and `PRIORITE` fields. Those rivers which have valid network topology have values of 1 and `PRIM` in these fields respectively. More details on these fields an be found in the GRHQ guide. These rivers are loaded and filtered below.
+The primary source for river data is the [Géobase du réseau hydrographique de Québec (GRHQ)](https://www.donneesquebec.ca/recherche/dataset/grhq). The GRHQ is a database of mapped rivers in Québec which includes, along with their location, some basic descriptive data about rivers such as Strahler order, distance from the nearest confluence, and intermittency. The GRHQ is specifically designed with network analyses in mind by ensuring ends of lines intersect correctly and don't braid over each other. The Chateauguay watershed is identified as 03AB in the GRHQ and the river lines are found in the "RH_L" layer. Note that this data layer includes some additional river lines which are not admissible in network analyses. Luckily these are identified in the GRHQ with the `ENABLED` and `PRIORITE` fields. Those rivers which have valid network topology have values of 1 and `PRIM` in these fields respectively. More details on these fields can be found in the GRHQ guide. These rivers are loaded and filtered below.
 
 ```{r message=FALSE, warning=FALSE}
 # Load required packages
@@ -66,9 +66,9 @@ plot(st_geometry(grhq_raw))
 
 There are 3 types of barrier data which are considered and each come from a separate open data source:
 
-* **Dams** are imported from the [MELCC webpage](https://www.cehq.gouv.qc.ca/barrages/default.asp#version-telechargeable)
-* **Culverts** are imported from the [MTQ's Structure dataset](https://www.donneesquebec.ca/recherche/dataset/structure). Culverts are specified with the "code_des_t" codes of 11 through 21 inclusively.
-* **Waterfalls** are extracted directly from the point data included in the GRHQ. This corresponds to the C_hyd_p layer in the GRHQ GeoDatabase.
+-   **Dams** are imported from the [MELCC webpage](https://www.cehq.gouv.qc.ca/barrages/default.asp#version-telechargeable)
+-   **Culverts** are imported from the [MTQ's Structure dataset](https://www.donneesquebec.ca/recherche/dataset/structure). Culverts are specified with the `code_des_t` codes of 11 through 21 inclusively.
+-   **Waterfalls** are extracted directly from the point data included in the GRHQ. This corresponds to the C_hyd_p layer in the GRHQ GeoDatabase.
 
 ```{r}
 # Read in dams
@@ -99,30 +99,30 @@ As is obvious visually many barriers lie outside the Chateauguay watershed becau
 
 ### Other data
 
-A final piece of required data is the location of the outlet of the watershed. This data consists of a single point at the final sink of the Chateauguay watershed. In this case, the watershed has multiple outlets and this is corrected in the subsequent section about river data preparation. The outlet point will be generated at that point.
+A final piece of required data is the location of the outlet of the watershed. This data consists of a single point at the final sink of the Chateauguay watershed. In this case, the watershed has multiple outlets and this is corrected in the subsequent section about river data preparation. A single unified outlet point will be generated at that point.
 
-Some other optional data which are explored here are data associated with rivers which can serve as a weight during the connectivity analysis effectively biasing connectivity results to prioritize highly weighted rivers. In this case these consist of land use variables extract from the [Cadre de Reference Hydrographique de Quebec (CRHQ)](https://www.donneesquebec.ca/recherche/dataset/crhq)
+Some other optional data which are explored here are data associated with rivers which can serve as a weight during the connectivity analysis effectively biasing connectivity results to prioritize highly weighted rivers. In this case these consist of land use variables extracted from the [Cadre de Reference Hydrographique de Quebec (CRHQ)](https://www.donneesquebec.ca/recherche/dataset/crhq)
 
 ## 3. Data preparation
 
 ### River data
 
-Raw river data requires considerable editing to be imported into the `dci` package. For DCI analyses to function properly river data must follow a strict dendritic topology wherein exactly two upstream rivers join together at confluences and form single downstream rivers. Due to the resolution of spatial data and the simplifying of rivers into one dimensional lines topological errors which violate the dendritic rules can arise. Specifically these errors can either be too many rivers joining to form a single downstream river (complex confluences) or the splitting of a single river into two (divergent streams). In addition to these topological corrections there are other steps that must be taken to properly isolate the watershed of interest. The steps for cleaning and preparing the Chateauguay river data are:
+Raw river data requires considerable editing to be imported into the `dci` package. For DCI analyses to function properly river data must follow a strict dendritic topology wherein exactly two upstream rivers join together at confluences and form single downstream rivers. Due to the resolution of spatial data and the simplifying of rivers into one dimensional lines topological errors which violate the dendritic rules can arise. Specifically, these errors can either be too many rivers joining to form a single downstream river (complex confluences) or the splitting of a single river into two (divergent streams). In addition to these topological corrections there are other steps that must be taken to properly isolate the watershed of interest. The steps for cleaning and preparing the river data are:
 
-1. Filter out rivers which are in US jurisdiction
-2. Add river lines to ensure all individual outlets are linked to a single outlet
-3. Import rivers to remove small river fragments with the help of the `dci` package and the `import_rivers` function
-4. Correct topological errors with the help of the `dci` package and the `enforce_dendritic` function
-5. Remove duplicate rivers
-6. Import rivers a final time into the `dci` workflow with `import_rivers`
+1.  Isolate rivers of interest
+2.  Generate single outlet
+3.  Remove small isolated river fragments
+4.  Correct topological errors
+5.  Remove duplicate rivers
+6.  Import rivers into the `dci` workflow
 
 These steps are further developed and demonstrated in subsequent sub-sections.
 
-#### Filtering out US rivers
+#### Isolate rivers of interest
 
-Many rivers in the south of what is considered the Chateauguay watershed are found across the US border. These rivers should be removed from the present analysis since barrier data is only available from Canadian sources.
+Many rivers in the south of what is considered the Chateauguay watershed are found across the US border. These rivers should be removed from the present analysis since only those which lie in Canadian jurisdiction are of interest for this analysis.
 
-This filtering requires a spatial layer of the boundaries of the province of Quebec. In this case data was downloaded from the [open data portal](https://open.canada.ca/data/en/dataset/a883eb14-0c0e-45c4-b8c4-b54c4a819edb) of the government of Canada. Following the acquisition of this spatial data rivers which lie north of the border can be extracted with a simple clipping operation in a GIS software. This can also be done in R. However, note that the clipping operation is much faster in QGIS than in R. For completeness some code to perform this operation in R is presented below.
+This filtering requires a spatial layer of the boundaries of the province of Quebec. In this case, data was downloaded from the [open data portal](https://open.canada.ca/data/en/dataset/a883eb14-0c0e-45c4-b8c4-b54c4a819edb) of the government of Canada. Following the acquisition of this spatial data rivers which lie north of the border can be extracted with a simple clipping operation in a GIS software. This can also be done in R. However, note that the clipping operation is much faster in QGIS than in R. For completeness some code to perform this operation in R is presented below.
 
 ```{r eval=FALSE}
 # Read in Quebec boundary
@@ -147,13 +147,13 @@ plot(st_geometry(grhq_raw), col = "red")
 plot(st_geometry(grhq_clipped), add = T)
 ```
 
-#### Combining outlets
+#### Generate single outlet
 
-The Chateauguay watershed, as represented in the GRHQ, contains multiple sub-watersheds each with their own outlet draining into the St. Lawrence river at the northern end. However, for the purposes of connectivity analyses all these individual outlets should be joined together and drain into a single outlet representing the St. Lawrence river. This topological correction requires manual editing of rivers which can only easily be done in a dedicated GIS software such as QGIS. 
+The Chateauguay watershed, as represented in the GRHQ, contains multiple sub-watersheds each with their own outlet draining into the St. Lawrence river at the northern end. However, for the purposes of connectivity analyses all these individual outlets should be joined together and drain into a single outlet representing the St. Lawrence river. This topological correction requires manual editing of rivers which can only easily be done in a dedicated GIS software such as QGIS.
 
-Each individual outlet can be identified visually using a basemap representing the St. Lawrence river. Then, the end of the each river leading to an outlet should be extended to join a single other leading to one downstream river. This respects the rules of dendritic topology. Outlet rivers should be joined together this way until only one outlet remains. This process is illustrated below. Note also that, first, each river connecting an outlet to a confluence or a confluence to a confluence should be an individual line and, second, these rivers should have an attribute which indicates they are imagined rivers. This last step will ensure their lengths can be excluded and not bias connectivity results.
+Each individual outlet can be identified visually using a basemap representing the St. Lawrence river. Then, the end of the each river leading to an outlet should be extended to join a single other leading to one downstream river. This respects the rules of dendritic topology. Outlet rivers should be joined together this way until only one outlet remains. This process is illustrated below. Note also that, first, each river connecting an outlet to a confluence or a confluence to a confluence should be an individual line and, second, these rivers should have an attribute which indicates they are imagined rivers. This last step will ensure these imagined rivers are properly tagged and allow for their lengths to be excluded later in the connectivity analysis.
 
-![](images/outlet_correct.png){#id .class width=50% height=50% style="display: block; margin: 0 auto"}
+![](images/outlet_correct.png){#id .class width="50%" height="50%" style="display: block; margin: 0 auto"}
 
 Below is the result of this outlet correction for the Chateauguay watershed. In red is the added portion linking outlets.
 
@@ -166,7 +166,7 @@ plot(st_geometry(grhq_clean), col = 'red')
 plot(st_geometry(grhq_clipped), add = T)
 ```
 
-#### Removing small fragments
+#### Remove small isolated river fragments
 
 Due to intermittency of some rivers or anthropogenic modifications small fragments of rivers can be found included in the watershed which are not connected to the main river network of the Chateauguay. The DCI is a watershed-level measure of connectivity. Thus, these small fragments will not influence the connectivity scores of larger fragmented rivers but they will slow down calculations. For the connectivity analysis we will only preserve the largest fully connected network in the watershed and this will be done with the help of the `dci` package. The `import_rivers` function, illustrated below, will ensure rivers are appropriate for connectivity analyses and extract the largest component (fully connected network) from the watershed.
 
@@ -178,11 +178,11 @@ require(dci)
 rivers_in <- import_rivers(grhq_clean)
 ```
 
-In this case, as can be seen from the removed red section, a large part of the watershed has been removed because it is not connected to the larger central segment. In this case 
+In this case, as can be seen from the removed red section, a large part of the watershed has been removed because it is not connected to the larger central segment.
 
-#### Correcting topology
+#### Correct topological errors
 
-The final pre-processing step for the rivers is to ensure all rivers follow a dendritic topology. Visually inspecting each confluence of the river network is impossible for a watershed of this size. However, the `dci` package has a `enforce_dendritic` function which is meant to aid in this task. 
+The final pre-processing step for the rivers is to ensure all rivers follow a dendritic topology. Visually inspecting each confluence of the river network is impossible for a watershed of this size. However, the `dci` package has a `enforce_dendritic` function which is meant to aid in this task.
 
 The `enforce_dendritic` function is written to be run either automatically or manually. Unfortunately, at the time of writing this guide, the automatic functionality of this tool is not complete. Regardless, whenever possible, doing this correction manually with the help of a GIS software like QGIS is recommended. In the manual mode, illustrated below, this function returns the spatial river data it was given with the addition of the `complexID` and `divergent` columns which identify complex confluences with too many inputs and divergent confluences with too many outputs respectively.
 
@@ -197,28 +197,28 @@ plot(st_geometry(grhq_err), col = "grey50")
 plot(grhq_err["complexID"], add = T)
 ```
 
-As shown by the maps and output message of the function this river data contains 38 complex confluences and 0 divergent confluences that must be corrected. Often solving complex confluences can lead to solving divergent confluence too. In addition, sometimes solving one can reveal another topological error. For this reason, it is recommended to correct complex confluences then re-run the `enforce_dendritic` function until all complex confluences are repaired. Then move on the divergent confluences. The following two sub-sections describe how to correct these errors in a GIS software.
+As shown by the maps and output message of the function this river data contains 38 complex confluences and 0 divergent confluences that must be corrected. Often, solving complex confluences can lead to solving divergent confluences too. In addition, sometimes solving one can reveal another topological error. For this reason, it is recommended to correct complex confluences then re-run the `enforce_dendritic` function until all complex confluences are repaired. Then move on the divergent confluences. The following two sub-sections describe how to correct these errors in a GIS software.
 
 ##### Complex confluences
 
-Complex confluences often arise when spatial resolution is not high enough to distinguish two closely located confluences. To correct these the end point of one of the confluence inputs should be moved to create a new divergence as illustrated. Note that the new segment which connected the two confluences should be a new line such that river intersections are correctly represented.
+Complex confluences often arise when spatial resolution is not high enough to distinguish two closely located confluences. To correct these the end point of one of the confluence inputs should be moved to create a new confluence as illustrated. Note that the new segment which connected the two confluences should be a new line such that river intersections are correctly represented.
 
-![](images/complex_correct.png){#id .class width=50% height=50% style="display: block; margin: 0 auto"}
+![](images/complex_correct.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
 
 ##### Divergent confluences
 
-Divergent confluences often arise when there is a large structure in the river causing a river to split or it is the result of transforming lakes to lines. To correct these one of the divergent output streams needs to be removed such that only one output remains as illustrated.
+Divergent confluences often arise when there is a large structure in the river causing a river to split or it is the result of transforming lakes to lines. To correct these one of the divergent output streams needs to be removed such that only one input remains as illustrated.
 
-![](images/div_correct.png){#id .class width=50% height=50% style="display: block; margin: 0 auto"}
+![](images/div_correct.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
 
 ### Barrier data
 
 Barrier data require much less processing than river data. The processing steps are:
 
-1. Assign types and passabilities to barriers
-2. Merge barriers to a single data object
-3. Snap barriers to river lines
-4. Import barriers to the `dci` workflow with the `import_points` function
+1.  Assign types and passabilities to barriers
+2.  Merge barriers to a single data object
+3.  Snap barriers to river lines
+4.  Import barriers to the `dci` workflow with the `import_points` function
 
 ```{r}
 # 1. Assign types and passabilities to barriers
@@ -279,7 +279,7 @@ plot(all_bar["type"], add = T, pch = 16)
 
 ### Outlet data
 
-The outlet data consists of a single point. Once multiple outlets of the watershed are joined together to a final sink for the watershed a point layer can be created which holds a single point at this new outlet. The only further processing required is to import the outlet to the `dci` workflow with `import_points`.
+The outlet data consists of a single point. Once multiple outlets of the watershed are joined together to a final outlet for the watershed a point layer can be created which holds a single point at this new outlet. The only further processing required is to import the outlet to the `dci` workflow with `import_points`.
 
 ```{r}
 # Read in outlet
@@ -289,18 +289,18 @@ out <- read_sf("data/chat_data.gpkg", layer = "outlet")
 chat_out <- import_points(out, "outlet")
 ```
 
-## 5. Weighting
+## 4. Weighting
 
-In this guide land use is used as a proxy for habitat quality which serves as our weight for this analysis. Land use data was collected from the [CRHQ database](). The Chateauguay watershed corresponds to region 3 of the CRHQ. The CRHQ data are contained in points located on rivers. For this analysis a penalty was associated with high urban or agricultural land use but any other proxy or measure can be used. The steps in QGIS to extract a summary of CRHQ land use values for the GRHQ river lines are:
+In this guide, land use is used as a proxy for habitat quality which serves as our weight for this analysis. Land use data was collected from the [CRHQ database](). The Chateauguay watershed corresponds to region 3 of the CRHQ. The CRHQ data are contained in points located on rivers. For this analysis a penalty was associated with high urban or agricultural land use but any other proxy or measure can be used. The steps in QGIS to extract a summary of CRHQ land use values for the GRHQ river lines are:
 
-1. Load region 3 of the CRHQ
-2. Clip the relevant CRHQ points based on the location of river lines. Unfortunately, CRHQ points often don't fall perfectly on rivers. For this reason it might be beneficial to buffer the CRHQ points and extract the relevant points this way.
-3. Join land use variables to CRHQ point locations. Different categories of variables are grouped together in a series of CRHQ tables. The land use variables are found in the `PtRef_bv_occ` table. Joining can be done based on the CRHQ point ID called `Id_PtRef`. The relevant columns for this analysis are `ant` which represents urban land use and the sum of `cau`, `cfo`, `cgi`, `cin`, and `cpi` which collectively represent different types of agricultural land use.
-4. Calculate a sum of agricultural land use types.
-5. Deal with unknown values. The CRHQ identifies missing values with the value of `-999`. Normally these values should be removed but for this example they will simply be converted to 0 as they represent a large part of the watershed's rivers.
-6. Snap CRHQ points to rivers. Often a very small distance value of 1m is enough.
-7. Summarize the values held in these CRHQ points onto the river lines on which they are located. This can be done in QGIS using the `Join attributes by location (summary)` tool.
-8. Set all `NULL` values in the mean agriculture and urban fields to `0`. These represent rivers for which CRHQ data is not available. We make the assumption that these rivers are not impacted by significant urban or agricultural land use.
+1.  Load the relevant region of the CRHQ
+2.  Clip the CRHQ points based on the location of river lines. Unfortunately, CRHQ points often don't fall perfectly on rivers. For this reason it might be beneficial to buffer the CRHQ points and extract the relevant points this way.
+3.  Join land use variables to CRHQ point locations. Different categories of variables are grouped together in a series of CRHQ tables. The land use variables are found in the `PtRef_bv_occ` table. Joining can be done based on the CRHQ point ID called `Id_PtRef`. The relevant columns for this analysis are `ant` which represents urban land use and the sum of `cau`, `cfo`, `cgi`, `cin`, and `cpi` which collectively represent different types of agricultural land use.
+4.  Calculate a sum of agricultural land use types.
+5.  Deal with unknown values. The CRHQ identifies missing values with the value of `-999`. Normally these values should be removed but for this example they will simply be converted to 0 as they represent a large part of the watershed's rivers.
+6.  Snap CRHQ points to rivers. Often a very small distance value of 1m is enough.
+7.  Summarize the values held in these CRHQ points onto the river lines on which they are located. This can be done in QGIS using the `Join attributes by location (summary)` tool.
+8.  Set all `NULL` values in the mean agriculture and urban fields to `0`. These represent rivers for which CRHQ data is not available. We make the assumption that these rivers are not impacted by significant urban or agricultural land use.
 
 ```{r}
 # Load rivers with land use variables summarized across them
@@ -315,17 +315,17 @@ plot(grhq_weighted["agr_mean"])
 
 The next step after land use variables are summarized across the watershed's rivers is to convert these values to meaningful weights. All rivers start with an equal weighting of 1 and receive penalties based on land use data. In this case the penalty scheme is as follows:
 
-|Land use|Penalty|
-|--------|-------|
-|agricultural < 10|0|
-|agricultural > 10 & < 30|0.2|
-|agricultural > 30 & < 50|0.5|
-|agricultural > 50 & < 80|0.8|
-|agricultural > 80|0.9|
-|urban < 10 |0.1|
-|urban > 10 & < 30 |0.3|
-|urban < 30 & < 50 |0.6|
-|urban > 50 |0.9|
+| Land use                   | Penalty |
+|----------------------------|---------|
+| agricultural \< 10         | 0       |
+| agricultural \> 10 & \< 30 | 0.2     |
+| agricultural \> 30 & \< 50 | 0.5     |
+| agricultural \> 50 & \< 80 | 0.8     |
+| agricultural \> 80         | 0.9     |
+| urban \< 10                | 0.1     |
+| urban \> 10 & \< 30        | 0.3     |
+| urban \< 30 & \< 50        | 0.6     |
+| urban \> 50                | 0.9     |
 
 ```{r}
 # Convert land use to weighting
@@ -364,9 +364,9 @@ grhq_weighted <- grhq_weighted %>%
   mutate(weight = if_else(included == "0", 0, weight))
 ```
 
-## 6. Restoration scenarios
+## 5. Restoration scenarios
 
-To ensure robust rankings simple restoration scenarios were simulated. This ensures that, if the landscape changes due to restoration efforts, these recommendations will still identify the most important rivers for regional connectivity. These simulations work by randomly selecting 25%, 50%, or 75% of rivers in the region and modifying their habitat quality to 1, the highest score. In a future application of this work a more realistic scenario of restoration would be preferable. For example, using knowledge of conservation on the ground to estimate regions of high conservation and restoration activity.
+To ensure robust rankings simple restoration scenarios were simulated. This ensures that, if the landscape changes due to restoration efforts, these recommendations will still identify the most important rivers and barriers for regional connectivity. These simulations work by randomly selecting 25%, 50%, or 75% of rivers in the region and modifying their habitat quality to 1, the highest score. In a future application of this work a more realistic scenario of restoration would be preferable. For example, using knowledge of conservation on the ground to estimate regions of high conservation and restoration activity.
 
 ```{r}
 set.seed(4523)
@@ -405,9 +405,9 @@ grhq_weighted <- grhq_weighted %>%
   mutate(weight_75 = if_else(weight_75 > 0.9, 1, weight_75 + 0.1))
 ```
 
-## 7. Connectivity calculation
+## 6. Connectivity calculation
 
-The first step in performing the connectivity calculation now that all inputs are ready is to combine them together in a `river_net` object from the `dci` package. This can be done with `river_net` function. This function performs many essential operations: ensuring the validity of spatial inputs, ensuring topological correctness, and assigning a binary search key to the river network for rapid network algorithms. This step can take a few minutes.
+The first step in performing the connectivity calculation now that all inputs are ready is to combine them together in a `river_net` object from the `dci` package. This can be done with the `river_net` function. This function performs many essential operations: ensuring the validity of spatial inputs, ensuring topological correctness, and assigning a binary search key to the river network for rapid network algorithms. This step can take a few minutes.
 
 ```{r eval=FALSE}
 # Import rivers
@@ -564,11 +564,11 @@ chat_res_riv <- read_sf("data/chat_res.gpkg", layer = "rivers")
 chat_res_bar <- read_sf("data/chat_res.gpkg", layer = "barriers")
 ```
 
-These final results have a column for each of the 12 calculated connectivity metrics. They follow an intuituve 3 part constrcution separated by underscores. The first element indicates this is a DCI measure, the second element indicates the type of connectivity measured (`pot` for potamodromous, `dia` for diadromous which is the invasive connectivity measure, and `thr` for thresholded potamodromous), and the third element indicates the level of restoration either 0%, 25%, 50%, or 75%.
+These final results have a column for each of the 12 calculated connectivity metrics. They follow an intuitive 3 part construction separated by underscores. The first element indicates this is a DCI measure, the second element indicates the type of connectivity measured (`pot` for potamodromous, `dia` for diadromous which is the invasive connectivity measure, and `thr` for thresholded potamodromous), and the third element indicates the level of restoration either 0%, 25%, 50%, or 75%.
 
-## 8. Ranking determination
+## 7. Ranking determination
 
-Finally with our suite of connectivity metrics calculated for each river reach in the watershed we can combine these together and produce a final ranking of streams based on a combination of these calculated connectivity metrics. First all these connectivity scores are converted to ranks. Note that all DCI measures except the invasive DCI are ranked in opposite order since the `rank` function of R ranks the lowest numbers as highest ranking. Then, the rank product is calculated with these 12 to derive a final ranking. In this case each connectivity metric is weighed equally but alternative weightings can be used to reflect specific conservation priorities. These calculations are only done for the barriers.
+Finally with our suite of connectivity metrics calculated for each river reach in the watershed we can combine these together and produce a final ranking of streams based on a combination of these calculated connectivity metrics. First, all these connectivity scores are converted to ranks. Note that all DCI measures except the invasive DCI are ranked in opposite order since the `rank` function of R ranks the lowest numbers as highest ranking. Then, the rank product is calculated with these 12 to derive a final ranking. In this case, each connectivity metric is weighed equally but alternative weightings can be used to reflect specific conservation priorities. These calculations are only done for the barriers.
 
 ```{r}
 # Compute ranks
@@ -591,7 +591,7 @@ chat_res_bar <- chat_res_bar %>%
                       rankth0 * rankth25 * rankth50 * rankth75 / 12)
 ```
 
-## 9. Conclusions
+## 8. Conclusions
 
 These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
 
