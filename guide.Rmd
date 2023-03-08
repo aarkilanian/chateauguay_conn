@@ -35,7 +35,11 @@ Finally, the workflow presented here is developed with the objective of renderin
 
 A 13th metric not considered here due to a lack of data is cultural value associated with certain river reaches. This quality of rivers could simply be integrated into the eventual rankings in the final section of this user guide.
 
-## 2. Data sources
+## 2. The Dendritic Connectivity Index
+
+The Dendritic Connectivity Index (DCI) is a measure of connectivity for river networks.
+
+## 3. Data sources
 
 ### River data
 
@@ -103,7 +107,7 @@ A final piece of required data is the location of the outlet of the watershed. T
 
 Some other optional data which are explored here are data associated with rivers which can serve as a weight during the connectivity analysis effectively biasing connectivity results to prioritize highly weighted rivers. In this case these consist of land use variables extracted from the [Cadre de Reference Hydrographique de Quebec (CRHQ)](https://www.donneesquebec.ca/recherche/dataset/crhq)
 
-## 3. Data preparation
+## 4. Data preparation
 
 ### River data
 
@@ -217,8 +221,9 @@ Barrier data require much less processing than river data. The processing steps 
 
 1.  Assign types and passabilities to barriers
 2.  Merge barriers to a single data object
-3.  Snap barriers to river lines
-4.  Import barriers to the `dci` workflow with the `import_points` function
+3.  Remove duplicate barriers
+4.  Snap barriers to river lines
+5.  Import barriers to the `dci` workflow with the `import_points` function
 
 ```{r}
 # 1. Assign types and passabilities to barriers
@@ -258,13 +263,15 @@ falls <- falls_raw %>%
 # 2. Merge barriers to a single data object
 all_bar <- bind_rows(culverts, dams, falls)
 
-# 3. Snap barriers to river lines
+# 3. Remove duplicate barriers
+
+# 4. Snap barriers to river lines
 # This step is performed in QGIS since snapping behaves strangely at times with the sf package
 # To speed up this snapping a clipping operation could first be done to limit the number of points to snap
 all_bar <- read_sf("data/chat_data.gpkg", layer = "all_bars")
 glimpse(all_bar)
 
-# 4. Import barriers to dci
+# 5. Import barriers to dci
 chat_bars <- import_points(all_bar, "barriers")
 ```
 
@@ -289,7 +296,7 @@ out <- read_sf("data/chat_data.gpkg", layer = "outlet")
 chat_out <- import_points(out, "outlet")
 ```
 
-## 4. Weighting
+## 5. Weighting
 
 In this guide, land use is used as a proxy for habitat quality which serves as our weight for this analysis. Land use data was collected from the [CRHQ database](). The Chateauguay watershed corresponds to region 3 of the CRHQ. The CRHQ data are contained in points located on rivers. For this analysis a penalty was associated with high urban or agricultural land use but any other proxy or measure can be used. The steps in QGIS to extract a summary of CRHQ land use values for the GRHQ river lines are:
 
@@ -364,7 +371,7 @@ grhq_weighted <- grhq_weighted %>%
   mutate(weight = if_else(included == "0", 0, weight))
 ```
 
-## 5. Restoration scenarios
+## 6. Restoration scenarios
 
 To ensure robust rankings simple restoration scenarios were simulated. This ensures that, if the landscape changes due to restoration efforts, these recommendations will still identify the most important rivers and barriers for regional connectivity. These simulations work by randomly selecting 25%, 50%, or 75% of rivers in the region and modifying their habitat quality to 1, the highest score. In a future application of this work a more realistic scenario of restoration would be preferable. For example, using knowledge of conservation on the ground to estimate regions of high conservation and restoration activity.
 
@@ -405,7 +412,7 @@ grhq_weighted <- grhq_weighted %>%
   mutate(weight_75 = if_else(weight_75 > 0.9, 1, weight_75 + 0.1))
 ```
 
-## 6. Connectivity calculation
+## 7. Connectivity calculation
 
 The first step in performing the connectivity calculation now that all inputs are ready is to combine them together in a `river_net` object from the `dci` package. This can be done with the `river_net` function. This function performs many essential operations: ensuring the validity of spatial inputs, ensuring topological correctness, and assigning a binary search key to the river network for rapid network algorithms. This step can take a few minutes.
 
@@ -566,7 +573,7 @@ chat_res_bar <- read_sf("data/chat_res.gpkg", layer = "barriers")
 
 These final results have a column for each of the 12 calculated connectivity metrics. They follow an intuitive 3 part construction separated by underscores. The first element indicates this is a DCI measure, the second element indicates the type of connectivity measured (`pot` for potamodromous, `dia` for diadromous which is the invasive connectivity measure, and `thr` for thresholded potamodromous), and the third element indicates the level of restoration either 0%, 25%, 50%, or 75%.
 
-## 7. Ranking determination
+## 8. Ranking determination
 
 Finally with our suite of connectivity metrics calculated for each river reach in the watershed we can combine these together and produce a final ranking of streams based on a combination of these calculated connectivity metrics. First, all these connectivity scores are converted to ranks. Note that all DCI measures except the invasive DCI are ranked in opposite order since the `rank` function of R ranks the lowest numbers as highest ranking. Then, the rank product is calculated with these 12 to derive a final ranking. In this case, each connectivity metric is weighed equally but alternative weightings can be used to reflect specific conservation priorities. These calculations are only done for the barriers.
 
@@ -591,7 +598,7 @@ chat_res_bar <- chat_res_bar %>%
                       rankth0 * rankth25 * rankth50 * rankth75 / 12)
 ```
 
-## 8. Conclusions
+## 9. Conclusions
 
 These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
 
