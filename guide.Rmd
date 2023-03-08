@@ -116,7 +116,7 @@ Raw river data requires considerable editing to be imported into the `dci` packa
 5.  Remove duplicate rivers
 6.  Import rivers into the `dci` workflow
 
-These steps are further developed and demonstrated in subsequent sub-sections.
+These steps are further developed and demonstrated in subsequent sub-sections. Note that steps 5 and 6 are not further explained. The rivers of the Chateauguay watershed from the GRHQ did not contain any duplicate rivers. Additionally, the importing of rivers into the `dci` workflow are done later in this case since weighting must first be calculated for these rivers.
 
 #### Isolate rivers of interest
 
