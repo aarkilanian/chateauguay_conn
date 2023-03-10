@@ -16,7 +16,7 @@ This guide will walk a user through a longitudinal connectivity analysis of the 
 
 At its base the DCI is a simple measure of structural connectivity and weighs all river reaches the same. However, the `dci` package allows for a biased calculation of connectivity which favors certain highly weighted reaches as more important to the watershed's regional connectivity. This weighting scheme is explored in the guide using urban and agricultural land use as proxies for fish habitat quality.
 
-Finally, the workflow presented here is developed with the objective of rendering a ranking of river reaches in a watershed based on their importance to regional connectivity in the short and long term. To this end, a ranking is developed which combines multiple slightly different formulations of the DCI to capture the multiple facets of connectivity. In this formulation, there is a total of 3 different connectivity metrics calculated each for a different aspect of connectivity important for fish conservation: a long term measure, a short term measure which uses a dispersal threshold typical of a 4 week spawning season (14km, retrieved from Comte & Olden, 2018), and an invasive measure which measures the watershed's connectivity to the source of invasive species at the mouth of the watershed. Additionally, in an effort to ensure these connectivity prioritizations remain robust in the face of habitat restoration in the region these metrics are recalculated for 4 levels of randomized restoration across the watershed. This leaves a total of 12 connectivity metrics.
+Finally, the workflow presented here is developed with the objective of rendering a ranking of river reaches in a watershed based on their importance to regional connectivity in the short and long term. To this end, a ranking is developed which combines multiple slightly different formulations of the DCI to capture the multiple facets of connectivity. In this formulation, there is a total of 3 different connectivity metrics calculated each for a different aspect of connectivity important for fish conservation: a long term measure, a short term measure, and an invasive measure which measures the watershed's connectivity to the source of invasive species at the mouth of the watershed. Additionally, in an effort to ensure these connectivity prioritizations remain robust in the face of habitat restoration in the region these metrics are recalculated for 4 levels of randomized restoration across the watershed. This leaves a total of 12 connectivity metrics.
 
 | Scenario        | Metric         |
 |-----------------|----------------|
@@ -37,7 +37,19 @@ A 13th metric not considered here due to a lack of data is cultural value associ
 
 ## 2. The Dendritic Connectivity Index
 
-The Dendritic Connectivity Index (DCI) is a measure of connectivity for river networks.
+This section further describes the Dendritic Connectivity Index (DCI). For the purposes of calculating river connectivity with the DCI a river network must be considered as a collection of river segments each linked to each other through barriers with a variable amount of passability for fish as illustrated below.
+
+The DCI then looks at each pair of segments in the network and computes the product of the lengths of each relative to the entire length of the network and weighs this by the passability of the barrier(s) which separate them. This is done for each pair of segments and added up to get a total DCI for the network. In this way, the DCI calculates connectivity as the amount of accessible habitat from each segment. 
+
+
+
+The subsequent sub-section explains the ways in which the DCI is modified in this analysis for increased realism.
+
+### DCI modifications
+
+**Habitat quality** The DCI can be further modified, as it is in this analysis, to include a weighting related to habitat quality such that connectivity between low quality habitats are not given as much importance as high quality habitats. In this analysis the weighting is based on land use but these weights can also be informed by habitat quality models for fish species of interest. 
+
+**Dispersal threshold** One of the forms of the DCI used here incorporates a threshold distance in an attempt to measure a short term connectivity within one generation of fish. Alternatively, the original form of the DCI does not assign any distance penalty between segments such that a fish is expected to be able to disperse to any part of the watershed with equal ease. This threshold is informed by the average dispersal typical of a 4 week spawning period across a large number of freshwater fish species (14km, retrieved from Comte & Olden, 2018).
 
 ## 3. Data sources
 
@@ -264,6 +276,7 @@ falls <- falls_raw %>%
 all_bar <- bind_rows(culverts, dams, falls)
 
 # 3. Remove duplicate barriers
+
 
 # 4. Snap barriers to river lines
 # This step is performed in QGIS since snapping behaves strangely at times with the sf package
