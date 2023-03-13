@@ -37,7 +37,23 @@ A 13th metric not considered here due to a lack of data is cultural value associ
 
 ## 2. The Dendritic Connectivity Index
 
-The Dendritic Connectivity Index (DCI) is a measure of connectivity for river networks.
+The Dendritic Connectivity Index (DCI) comes in two related forms to relate specifically to the migration strategies of diadromous and potamodromous fishes. In this analysis, the potamodromous form is used for the short-term and long-term measures of connectivity. The diadromous form is only used in the invasive measure of connectivity with the assumption that the majority of invasive species are coming from the St. Lawrence River. Note that this analysis would require a reformulation to consider native potamodromous and diadromous fish together. The DCI considers fragmented river systems to consist of $n$ river segments based on the $M$ barriers on the entire network. An example of the way the DCI considers a fragmented river network is presented below with each river segment identified with a different colour and barriers in red circles.
+
+![](images/dci_segments.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
+
+The DCI then calculates the sum of connectivity between each pair of segments for the potamodromous form and only between the mouth and each segment in the diadromous form. Additionally, for this analysis, a habitat quality based weighting is applied to segments. The equations for these two forms of the DCI is presented below and explained further.
+
+$$
+DCI_{potamodromous} = \sum_{i=1}^{n}{ \sum_{j=1}^{n}{c_{ij} \frac{ql_i}{qL} \frac{ql_j}{qL} * 100}}
+$$
+
+$$
+DCI_{diadromous} =  \sum_{i=1}^{n}{c_{ij} \frac{ql_i}{qL}  * 100}
+$$
+
+The connectivity between fragments $i$ and $j$ is measured as the product of their habitat quality weighted length ($ql_i$ and $ql_j$) relative to the habitat quality weighted length of the entire network ($qL$) multiplied by the passability of the barrier(s) which separate them ($c_{ij}$). This passability term is the product of the upstream and downstream passability of each barrier. In this case both upstream and downstream passabilities are considered to be equal.
+
+In this analysis a short-term connectivity measure is used which imposes a distance limit to the calculation of the DCI. This is achieved by limiting the length of a segment by only considering rivers which lie within a distance threshold from the source segment in the calculation between each pair.
 
 ## 3. Data sources
 
