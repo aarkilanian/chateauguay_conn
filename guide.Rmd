@@ -616,6 +616,14 @@ chat_res_bar <- chat_res_bar %>%
 
 ## 9. Conclusions
 
-These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
+These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic potamodromous fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
 
-While these metrics and rankings provide a good starting understanding of connectivity in the watershed there are many data which could serve to develop robust recommendations from this analysis. For example more intimate knowledge of both species in need of conservation and invasive species could help narrow these connectivity calculations to be more species-specific. Additionally, further information on barriers and the presence of phragmites in the area could further refine the definition of passability in the watershed. Finally, more fine tuning of the weights associated with each of these metrics could yield very different impressions of the watershed's connectivity and these should be explored in depth before concrete recommendations are delivered.
+### Future directions
+
+While these metrics and rankings provide a good starting understanding of connectivity in the watershed there are many data which could serve to develop robust recommendations from this analysis. Recommendations for future development on this analysis are provided below in no particular order:
+
+-   **Barrier passability** The barrier passabilities used in this analysis were determined based on previously published analyses. However, due to differences in species' swimming abilities, the passability of a barrier can be different for different species. There exist a number of methods (for example the FishXing software) to also include the specific dimensions of barriers to better understand then their installation can cause significant fragmentation for fish.
+
+-   **Habitat quality** In this analysis land use was used as a proxy for habitat quality in the interest of simplicity and the illustration of a new methodology. In a future iteration of this analysis where a group of focal species are chosen a habitat suitability model could provide a more realistic estimate of habitat quality.
+
+-   **Migration strategies** This analysis focuses primarily on potamodromous fish and only uses the diadromous measure of the DCI for the invasive connectivity estimate. A future iteration of this workflow could alter the suite of connectivity measures assessed to better consider a wider range of fish migration strategies.
