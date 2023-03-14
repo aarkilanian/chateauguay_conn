@@ -37,6 +37,7 @@ A 13th metric not considered here due to a lack of data is cultural value associ
 
 ## 2. The Dendritic Connectivity Index
 
+<<<<<<< HEAD
 This section further describes the Dendritic Connectivity Index (DCI). For the purposes of calculating river connectivity with the DCI a river network must be considered as a collection of river segments each linked to each other through barriers with a variable amount of passability for fish as illustrated below.
 
 The DCI then looks at each pair of segments in the network and computes the product of the lengths of each relative to the entire length of the network and weighs this by the passability of the barrier(s) which separate them. This is done for each pair of segments and added up to get a total DCI for the network. In this way, the DCI calculates connectivity as the amount of accessible habitat from each segment. 
@@ -50,6 +51,25 @@ The subsequent sub-section explains the ways in which the DCI is modified in thi
 **Habitat quality** The DCI can be further modified, as it is in this analysis, to include a weighting related to habitat quality such that connectivity between low quality habitats are not given as much importance as high quality habitats. In this analysis the weighting is based on land use but these weights can also be informed by habitat quality models for fish species of interest. 
 
 **Dispersal threshold** One of the forms of the DCI used here incorporates a threshold distance in an attempt to measure a short term connectivity within one generation of fish. Alternatively, the original form of the DCI does not assign any distance penalty between segments such that a fish is expected to be able to disperse to any part of the watershed with equal ease. This threshold is informed by the average dispersal typical of a 4 week spawning period across a large number of freshwater fish species (14km, retrieved from Comte & Olden, 2018).
+=======
+The Dendritic Connectivity Index (DCI) comes in two related forms to relate specifically to the migration strategies of diadromous and potamodromous fishes. In this analysis, the potamodromous form is used for the short-term and long-term measures of connectivity. The diadromous form is only used in the invasive measure of connectivity with the assumption that the majority of invasive species are coming from the St. Lawrence River. Note that this analysis would require a reformulation to consider native potamodromous and diadromous fish together. The DCI considers fragmented river systems to consist of $n$ river segments based on the $M$ barriers on the entire network. An example of the way the DCI considers a fragmented river network is presented below with each river segment identified with a different colour and barriers in red circles.
+
+![](images/dci_segments.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
+
+The DCI then calculates the sum of connectivity between each pair of segments for the potamodromous form and only between the mouth and each segment in the diadromous form. Additionally, for this analysis, a habitat quality based weighting is applied to segments. The equations for these two forms of the DCI is presented below and explained further.
+
+$$
+DCI_{potamodromous} = \sum_{i=1}^{n}{ \sum_{j=1}^{n}{c_{ij} \frac{ql_i}{qL} \frac{ql_j}{qL} * 100}}
+$$
+
+$$
+DCI_{diadromous} =  \sum_{i=1}^{n}{c_{ij} \frac{ql_i}{qL}  * 100}
+$$
+
+The connectivity between fragments $i$ and $j$ is measured as the product of their habitat quality weighted length ($ql_i$ and $ql_j$) relative to the habitat quality weighted length of the entire network ($qL$) multiplied by the passability of the barrier(s) which separate them ($c_{ij}$). This passability term is the product of the upstream and downstream passability of each barrier. In this case both upstream and downstream passabilities are considered to be equal.
+
+In this analysis a short-term connectivity measure is used which imposes a distance limit to the calculation of the DCI. This is achieved by limiting the length of a segment by only considering rivers which lie within a distance threshold from the source segment in the calculation between each pair.
+>>>>>>> 0a3063e3a851142852c7606085aa5d9d80776f87
 
 ## 3. Data sources
 
@@ -225,7 +245,7 @@ Complex confluences often arise when spatial resolution is not high enough to di
 
 Divergent confluences often arise when there is a large structure in the river causing a river to split or it is the result of transforming lakes to lines. To correct these one of the divergent output streams needs to be removed such that only one input remains as illustrated.
 
-![](images/div_correct.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
+![](images/div_correct.png){.class width="30%" height="30%" style="display: block; margin: 0 auto"}
 
 ### Barrier data
 
@@ -280,7 +300,8 @@ all_bar <- bind_rows(culverts, dams, falls)
 
 # 4. Snap barriers to river lines
 # This step is performed in QGIS since snapping behaves strangely at times with the sf package
-# To speed up this snapping a clipping operation could first be done to limit the number of points to snap
+# To speed up this snapping a clipping operation could first be done to limit the number of 
+# points to snap
 all_bar <- read_sf("data/chat_data.gpkg", layer = "all_bars")
 glimpse(all_bar)
 
@@ -333,19 +354,22 @@ plot(grhq_weighted["ant_mean"])
 plot(grhq_weighted["agr_mean"])
 ```
 
-The next step after land use variables are summarized across the watershed's rivers is to convert these values to meaningful weights. All rivers start with an equal weighting of 1 and receive penalties based on land use data. In this case the penalty scheme is as follows:
+The next step after land use variables are summarized across the watershed's rivers is to convert these values to meaningful weights. All rivers start with an equal weighting of 1 and receive penalties based on land use data up to a maximum of 0.95. In this case the penalty scheme is as follows:
 
 | Land use                   | Penalty |
 |----------------------------|---------|
 | agricultural \< 10         | 0       |
-| agricultural \> 10 & \< 30 | 0.2     |
-| agricultural \> 30 & \< 50 | 0.5     |
-| agricultural \> 50 & \< 80 | 0.8     |
-| agricultural \> 80         | 0.9     |
-| urban \< 10                | 0.1     |
-| urban \> 10 & \< 30        | 0.3     |
-| urban \< 30 & \< 50        | 0.6     |
-| urban \> 50                | 0.9     |
+| agricultural \> 10 & \< 30 | 0.1     |
+| agricultural \> 30 & \< 50 | 0.1     |
+| agricultural \> 50 & \< 70 | 0.2     |
+| agricultural \> 70 & \< 90 | 0.3     |
+| agricultural \> 90         | 0.4     |
+| urban \< 10                | 0       |
+| urban \> 10 & \< 30        | 0.2     |
+| urban \> 30 & \< 50        | 0.3     |
+| urban \< 50 & \< 70        | 0.4     |
+| urban \< 70 & \< 90        | 0.5     |
+| urban \> 90                | 0.6     |
 
 ```{r}
 # Convert land use to weighting
@@ -354,23 +378,28 @@ grhq_weighted <- grhq_weighted %>%
   mutate(
     penalty_agr = case_when(
       agr_mean < 10 ~ 0,
-      agr_mean >= 10 & agr_mean < 30 ~ 0.2,
-      agr_mean >= 30 & agr_mean < 50 ~ 0.5,
-      agr_mean >= 50 & agr_mean < 80 ~ 0.8,
-      agr_mean >= 80 ~ 0.9
+      agr_mean >= 10 & agr_mean < 30 ~ 0.1,
+      agr_mean >= 30 & agr_mean < 50 ~ 0.2,
+      agr_mean >= 50 & agr_mean < 70 ~ 0.3,
+      agr_mean >= 70 & agr_mean < 90 ~ 0.4,
+      agr_mean >= 80 ~ 0.5
     )
   ) %>%
   # Compute urban penalty
   mutate(
     penalty_urb = case_when(
-      ant_mean > 0 & ant_mean < 10 ~ 0.1,
-      ant_mean >= 10 & ant_mean < 30 ~ 0.3,
-      ant_mean >= 30 & ant_mean < 50 ~ 0.6,
-      ant_mean >= 50 ~ 0.9
+      ant_mean < 10 ~ 0,
+      ant_mean >= 10 & ant_mean < 30 ~ 0.2,
+      ant_mean >= 30 & ant_mean < 50 ~ 0.3,
+      ant_mean >= 50 & ant_mean < 70 ~ 0.4,
+      ant_mean >= 70 & ant_mean < 90 ~ 0.5,
+      ant_mean >= 90 ~ 0.6
     )
   ) %>%
   # Combine penalties to get weighting
-  mutate(weight = 1 - (penalty_urb + penalty_agr))
+  mutate(weight = 1 - (penalty_urb + penalty_agr)) %>%
+  # Set minimum weight to 0.05
+  mutate(weight = pmax(weight, 0.05))
 
 # Plot weighting result
 plot(grhq_weighted["weight"])
@@ -401,6 +430,7 @@ rest_50 <- sample(1:nrow(grhq_weighted), size = 0.50*nrow(grhq_weighted))
 rest_75 <- sample(1:nrow(grhq_weighted), size = 0.75*nrow(grhq_weighted))
 
 # Compute restoration scenarios
+# Set weight of targets selected in previous step to maximum of 1
 grhq_weighted <- grhq_weighted %>%
   # 25% restoration
   mutate(weight_25 = if_else(row_number() %in% rest_25, 1, weight_0)) %>%
@@ -416,13 +446,13 @@ One of the categories of connectivity metrics to be calculated pertains to invas
 # Compute invasive habitat quality based on original quality measure
 grhq_weighted <- grhq_weighted %>%
   # 0% restoration
-  mutate(weight_inv_0 = if_else(weight_0 > 0.9, 1, weight_0 + 0.1)) %>%
+  mutate(weight_inv_0 = pmin(weight_0 + 1, 1)) %>%
   # 25% restoration
-  mutate(weight_inv_25 = if_else(weight_25 > 0.9, 1, weight_25 + 0.1)) %>%
+  mutate(weight_inv_25 = pmin(weight_25 + 1, 1)) %>%
   # 50% restoration
-  mutate(weight_50 = if_else(weight_50 > 0.9, 1, weight_50 + 0.1)) %>%
+  mutate(weight_inv_50 = pmin(weight_50 + 1, 1)) %>%
   # 75% restoration
-  mutate(weight_75 = if_else(weight_75 > 0.9, 1, weight_75 + 0.1))
+  mutate(weight_inv_75 = pmin(weight_75 + 1, 1))
 ```
 
 ## 7. Connectivity calculation
@@ -442,6 +472,34 @@ chat_net <- river_net(rivers = chat_riv,
 
 Once the `river_net` object is created calculating connectivity is done very easily using the `calculate_dci` function. This function has many parameters allowing the measurement of connectivity in different flavours. In total we are looking to calculate 12 indices. Note the use of the n.cores argument which allows for multi-threaded calculations based on the number of cores you'd like to use. However, at the moment, this option is only available on Linux and Mac operating systems.
 
+```{r}
+# Create table of parameter values for the 12 runs
+form.list <- c("potamodromous", "potamodromous", "potamodromous", "potamodromous",
+          "potamodromous", "potamodromous", "potamodromous", "potamodromous",
+          "diadromous", "diadromous", "diadromous", "diadromous")
+
+weight.list <- c("weight_0", "weight_25", "weight_50", "weight_75",
+            "weight_0", "weight_25", "weight_50", "weight_75",
+            "weight_inv_0", "weight_inv_25", "weight_inv_50", "weight_inv_75")
+
+threshold.list <- c(NULL, NULL, NULL, NULL,
+               14000, 14000, 14000, 14000,
+               NULL, NULL, NULL, NULL)
+
+print(data.frame(form.list, weight.list, threshold.list))
+
+# Run DCI calculation in a loop with list of arguments
+dci.runs <- mapply(calculate_dci,
+                   form = form.list,
+                   weight = weight.list,
+                   threshold = threshold.list,
+                   MoreArgs = list(net = chat_net, 
+                                   pass = "pass", 
+                                   n.cores = 12))
+```
+
+Now with the parameters prepared for the `calculate_dci` function, we can run this function for each 12 metric in a loop with the `mapply` function.
+
 ```{r eval=FALSE}
 # Calculating long-term potamodromous DCI (no distance threshold)
 # 0% restoration
@@ -449,25 +507,25 @@ full_pot_0 <- calculate_dci(net = chat_net,
                           form = "potamodromous",
                           pass = "pass",
                           weight = 'weight_0',
-                          n.cores = 12)
+                          n.cores = 16)
 # 25% restoration
 full_pot_25 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_25',
-                            n.cores = 12)
+                            n.cores = 16)
 # 50% restoration
 full_pot_50 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_50',
-                            n.cores = 12)
+                            n.cores = 16)
 # 75% restoration
 full_pot_75 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_75',
-                            n.cores = 12)
+                            n.cores = 16)
 
 # Calculating short-term potamodromous DCI
 # 0% restoration
@@ -476,28 +534,28 @@ thresh_pot_0 <- calculate_dci(net = chat_net,
                           pass = "pass",
                           weight = 'weight_0',
                           threshold = 14000,
-                          n.cores = 12)
+                          n.cores = 16)
 # 25% restoration
 thresh_pot_25 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_25',
                             threshold = 14000,
-                            n.cores = 12)
+                            n.cores = 16)
 # 50% restoration
 thresh_pot_50 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_50',
                             threshold = 14000,
-                            n.cores = 12)
+                            n.cores = 16)
 # 75% restoration
 thresh_pot_75 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_75',
                             threshold = 14000,
-                            n.cores = 12)
+                            n.cores = 16)
 
 # Calculating diadromous invasive DCI
 # 0% restoration
@@ -505,25 +563,25 @@ full_dia_0 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_0",
-                          n.cores = 12)
+                          n.cores = 16)
 # 25% restoration
 full_dia_25 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_25",
-                          n.cores = 12)
+                          n.cores = 16)
 # 50% restoration
 full_dia_50 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_50",
-                          n.cores = 12)
+                          n.cores = 16)
 # 75% restoration
 full_dia_75 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_75",
-                          n.cores = 12)
+                          n.cores = 16)
 ```
 
 Each of these results is held in a `dci.results` object. It is required to combine them into a single data object to perform the final ranking step in this analysis. The `export_dci` function will help in this task. Unfortunately, at this time, there isn't a more concise way to perform this task.
@@ -613,6 +671,14 @@ chat_res_bar <- chat_res_bar %>%
 
 ## 9. Conclusions
 
-These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
+These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic potamodromous fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
 
-While these metrics and rankings provide a good starting understanding of connectivity in the watershed there are many data which could serve to develop robust recommendations from this analysis. For example more intimate knowledge of both species in need of conservation and invasive species could help narrow these connectivity calculations to be more species-specific. Additionally, further information on barriers and the presence of phragmites in the area could further refine the definition of passability in the watershed. Finally, more fine tuning of the weights associated with each of these metrics could yield very different impressions of the watershed's connectivity and these should be explored in depth before concrete recommendations are delivered.
+### Future directions
+
+While these metrics and rankings provide a good starting understanding of connectivity in the watershed there are many data which could serve to develop robust recommendations from this analysis. Recommendations for future development on this analysis are provided below in no particular order:
+
+-   **Barrier passability** The barrier passabilities used in this analysis were determined based on previously published analyses. However, due to differences in species' swimming abilities, the passability of a barrier can be different for different species. There exist a number of methods (for example the FishXing software) to also include the specific dimensions of barriers to better understand then their installation can cause significant fragmentation for fish.
+
+-   **Habitat quality** In this analysis land use was used as a proxy for habitat quality in the interest of simplicity and the illustration of a new methodology. In a future iteration of this analysis where a group of focal species are chosen a habitat suitability model could provide a more realistic estimate of habitat quality.
+
+-   **Migration strategies** This analysis focuses primarily on potamodromous fish and only uses the diadromous measure of the DCI for the invasive connectivity estimate. A future iteration of this workflow could alter the suite of connectivity measures assessed to better consider a wider range of fish migration strategies.
