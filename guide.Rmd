@@ -229,7 +229,7 @@ Complex confluences often arise when spatial resolution is not high enough to di
 
 Divergent confluences often arise when there is a large structure in the river causing a river to split or it is the result of transforming lakes to lines. To correct these one of the divergent output streams needs to be removed such that only one input remains as illustrated.
 
-![](images/div_correct.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
+![](images/div_correct.png){.class width="30%" height="30%" style="display: block; margin: 0 auto"}
 
 ### Barrier data
 
@@ -283,7 +283,8 @@ all_bar <- bind_rows(culverts, dams, falls)
 
 # 4. Snap barriers to river lines
 # This step is performed in QGIS since snapping behaves strangely at times with the sf package
-# To speed up this snapping a clipping operation could first be done to limit the number of points to snap
+# To speed up this snapping a clipping operation could first be done to limit the number of 
+# points to snap
 all_bar <- read_sf("data/chat_data.gpkg", layer = "all_bars")
 glimpse(all_bar)
 
