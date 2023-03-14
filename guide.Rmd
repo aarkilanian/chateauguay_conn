@@ -16,7 +16,7 @@ This guide will walk a user through a longitudinal connectivity analysis of the 
 
 At its base the DCI is a simple measure of structural connectivity and weighs all river reaches the same. However, the `dci` package allows for a biased calculation of connectivity which favors certain highly weighted reaches as more important to the watershed's regional connectivity. This weighting scheme is explored in the guide using urban and agricultural land use as proxies for fish habitat quality.
 
-Finally, the workflow presented here is developed with the objective of rendering a ranking of river reaches in a watershed based on their importance to regional connectivity in the short and long term. To this end, a ranking is developed which combines multiple slightly different formulations of the DCI to capture the multiple facets of connectivity. In this formulation, there is a total of 3 different connectivity metrics calculated each for a different aspect of connectivity important for fish conservation: a long term measure, a short term measure, and an invasive measure which measures the watershed's connectivity to the source of invasive species at the mouth of the watershed. Additionally, in an effort to ensure these connectivity prioritizations remain robust in the face of habitat restoration in the region these metrics are recalculated for 4 levels of randomized restoration across the watershed. This leaves a total of 12 connectivity metrics.
+Finally, the workflow presented here is developed with the objective of rendering a ranking of river reaches in a watershed based on their importance to regional connectivity in the short and long term. To this end, a ranking is developed which combines multiple slightly different formulations of the DCI to capture the multiple facets of connectivity. In this formulation, there is a total of 3 different connectivity metrics calculated each for a different aspect of connectivity important for fish conservation: a long term measure, a short term measure, and an invasive measure which measures the watershed's connectivity to the source of invasive species at the mouth of the watershed. Additionally, in an effort to ensure these connectivity rankings remain robust in the face of habitat restoration in the region these metrics are recalculated for 4 levels of randomized restoration across the watershed. This leaves a total of 12 connectivity metrics.
 
 | Scenario        | Metric         |
 |-----------------|----------------|
@@ -37,21 +37,6 @@ A 13th metric not considered here due to a lack of data is cultural value associ
 
 ## 2. The Dendritic Connectivity Index
 
-<<<<<<< HEAD
-This section further describes the Dendritic Connectivity Index (DCI). For the purposes of calculating river connectivity with the DCI a river network must be considered as a collection of river segments each linked to each other through barriers with a variable amount of passability for fish as illustrated below.
-
-The DCI then looks at each pair of segments in the network and computes the product of the lengths of each relative to the entire length of the network and weighs this by the passability of the barrier(s) which separate them. This is done for each pair of segments and added up to get a total DCI for the network. In this way, the DCI calculates connectivity as the amount of accessible habitat from each segment. 
-
-
-
-The subsequent sub-section explains the ways in which the DCI is modified in this analysis for increased realism.
-
-### DCI modifications
-
-**Habitat quality** The DCI can be further modified, as it is in this analysis, to include a weighting related to habitat quality such that connectivity between low quality habitats are not given as much importance as high quality habitats. In this analysis the weighting is based on land use but these weights can also be informed by habitat quality models for fish species of interest. 
-
-**Dispersal threshold** One of the forms of the DCI used here incorporates a threshold distance in an attempt to measure a short term connectivity within one generation of fish. Alternatively, the original form of the DCI does not assign any distance penalty between segments such that a fish is expected to be able to disperse to any part of the watershed with equal ease. This threshold is informed by the average dispersal typical of a 4 week spawning period across a large number of freshwater fish species (14km, retrieved from Comte & Olden, 2018).
-=======
 The Dendritic Connectivity Index (DCI) comes in two related forms to relate specifically to the migration strategies of diadromous and potamodromous fishes. In this analysis, the potamodromous form is used for the short-term and long-term measures of connectivity. The diadromous form is only used in the invasive measure of connectivity with the assumption that the majority of invasive species are coming from the St. Lawrence River. Note that this analysis would require a reformulation to consider native potamodromous and diadromous fish together. The DCI considers fragmented river systems to consist of $n$ river segments based on the $M$ barriers on the entire network. An example of the way the DCI considers a fragmented river network is presented below with each river segment identified with a different colour and barriers in red circles.
 
 ![](images/dci_segments.png){.class width="50%" height="50%" style="display: block; margin: 0 auto"}
@@ -69,7 +54,6 @@ $$
 The connectivity between fragments $i$ and $j$ is measured as the product of their habitat quality weighted length ($ql_i$ and $ql_j$) relative to the habitat quality weighted length of the entire network ($qL$) multiplied by the passability of the barrier(s) which separate them ($c_{ij}$). This passability term is the product of the upstream and downstream passability of each barrier. In this case both upstream and downstream passabilities are considered to be equal.
 
 In this analysis a short-term connectivity measure is used which imposes a distance limit to the calculation of the DCI. This is achieved by limiting the length of a segment by only considering rivers which lie within a distance threshold from the source segment in the calculation between each pair.
->>>>>>> 0a3063e3a851142852c7606085aa5d9d80776f87
 
 ## 3. Data sources
 
@@ -137,7 +121,7 @@ As is obvious visually many barriers lie outside the Chateauguay watershed becau
 
 A final piece of required data is the location of the outlet of the watershed. This data consists of a single point at the final sink of the Chateauguay watershed. In this case, the watershed has multiple outlets and this is corrected in the subsequent section about river data preparation. A single unified outlet point will be generated at that point.
 
-Some other optional data which are explored here are data associated with rivers which can serve as a weight during the connectivity analysis effectively biasing connectivity results to prioritize highly weighted rivers. In this case these consist of land use variables extracted from the [Cadre de Reference Hydrographique de Quebec (CRHQ)](https://www.donneesquebec.ca/recherche/dataset/crhq)
+Some other optional data which are explored here are data associated with rivers which can serve as a weight during the connectivity analysis effectively biasing connectivity results to rank highly weighted rivers higher. In this case these consist of land use variables extracted from the [Cadre de Reference Hydrographique de Quebec (CRHQ)](https://www.donneesquebec.ca/recherche/dataset/crhq)
 
 ## 4. Data preparation
 
@@ -296,12 +280,15 @@ falls <- falls_raw %>%
 all_bar <- bind_rows(culverts, dams, falls)
 
 # 3. Remove duplicate barriers
-
+# This step along with step 4 are performed in QGIS for simplicity
+# Removing duplicates is done with the "Remove duplicate geometries" tool
 
 # 4. Snap barriers to river lines
-# This step is performed in QGIS since snapping behaves strangely at times with the sf package
-# To speed up this snapping a clipping operation could first be done to limit the number of 
+# Snapping barriers is done with the "Snap geometries" tool
+# To speed up the snapping a clipping operation could first be done to limit the number of 
 # points to snap
+
+# Read back barriers after QGIS operations
 all_bar <- read_sf("data/chat_data.gpkg", layer = "all_bars")
 glimpse(all_bar)
 
@@ -671,11 +658,17 @@ chat_res_bar <- chat_res_bar %>%
 
 ## 9. Conclusions
 
-These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic potamodromous fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed.
+These final rankings are a composite score of connectivity across many facets. They combine short and long term connectivity with invasion risk and help to identify important regions in the Chateauguay watershed for endemic potamodromous fish connectivity. They also consider changes in the landscape through restoration simulations to ensure connectivity rankings remain robust in the face of a changing watershed. In this final section I explore the limitations of this analysis as it's been developed here and suggest future directions to improve its ability to generate realistic estimates of connectivity.
+
+### Limitations
+
+This workflow looks to generate the best estimates of connectivity given sparse data about fish species' habitat, behaviour, and locations. For these reasons and in the interest of creating a simple methodology the workflow presented here has a number of limitations which should be considered when it is applied:
+
+-   
 
 ### Future directions
 
-While these metrics and rankings provide a good starting understanding of connectivity in the watershed there are many data which could serve to develop robust recommendations from this analysis. Recommendations for future development on this analysis are provided below in no particular order:
+While these metrics and rankings provide a good starting understanding of connectivity in the watershed there are many data and advanced procedures which could serve to develop more robust recommendations from this analysis. Recommendations for future development on this analysis are provided below in no particular order:
 
 -   **Barrier passability** The barrier passabilities used in this analysis were determined based on previously published analyses. However, due to differences in species' swimming abilities, the passability of a barrier can be different for different species. There exist a number of methods (for example the FishXing software) to also include the specific dimensions of barriers to better understand then their installation can cause significant fragmentation for fish.
 
