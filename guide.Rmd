@@ -490,25 +490,25 @@ full_pot_0 <- calculate_dci(net = chat_net,
                           form = "potamodromous",
                           pass = "pass",
                           weight = 'weight_0',
-                          n.cores = 12)
+                          n.cores = 16)
 # 25% restoration
 full_pot_25 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_25',
-                            n.cores = 12)
+                            n.cores = 16)
 # 50% restoration
 full_pot_50 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_50',
-                            n.cores = 12)
+                            n.cores = 16)
 # 75% restoration
 full_pot_75 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_75',
-                            n.cores = 12)
+                            n.cores = 16)
 
 # Calculating short-term potamodromous DCI
 # 0% restoration
@@ -517,28 +517,28 @@ thresh_pot_0 <- calculate_dci(net = chat_net,
                           pass = "pass",
                           weight = 'weight_0',
                           threshold = 14000,
-                          n.cores = 12)
+                          n.cores = 16)
 # 25% restoration
 thresh_pot_25 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_25',
                             threshold = 14000,
-                            n.cores = 12)
+                            n.cores = 16)
 # 50% restoration
 thresh_pot_50 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_50',
                             threshold = 14000,
-                            n.cores = 12)
+                            n.cores = 16)
 # 75% restoration
 thresh_pot_75 <- calculate_dci(net = chat_net,
                             form = "potamodromous",
                             pass = "pass",
                             weight = 'weight_75',
                             threshold = 14000,
-                            n.cores = 12)
+                            n.cores = 16)
 
 # Calculating diadromous invasive DCI
 # 0% restoration
@@ -546,25 +546,25 @@ full_dia_0 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_0",
-                          n.cores = 12)
+                          n.cores = 16)
 # 25% restoration
 full_dia_25 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_25",
-                          n.cores = 12)
+                          n.cores = 16)
 # 50% restoration
 full_dia_50 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_50",
-                          n.cores = 12)
+                          n.cores = 16)
 # 75% restoration
 full_dia_75 <- calculate_dci(net = chat_net,
                           form = "diadromous",
                           pass = "pass",
                           weight = "weight_inv_75",
-                          n.cores = 12)
+                          n.cores = 16)
 ```
 
 Each of these results is held in a `dci.results` object. It is required to combine them into a single data object to perform the final ranking step in this analysis. The `export_dci` function will help in this task. Unfortunately, at this time, there isn't a more concise way to perform this task.
