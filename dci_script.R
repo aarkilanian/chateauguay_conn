@@ -1,11 +1,14 @@
 ##### Import packages #####
 
+# Installation instructions (if required)
+
 # install.packages("dplyr")
 # install.packages("sf")
 # install.packages("sfnetworks")
 # install.packages("devtools")
 # devtools::install_github("aarkilanian/dci")
 
+# Import packages
 require(dplyr)
 require(sf)
 require(dci)
@@ -35,8 +38,6 @@ rivers <- rivers %>%
   st_zm() %>%
   # Filter rivers with ENABLED set to 1
   filter(ENABLED == 1) %>%
-  # Filter rivers with PRIORITE set to PRIM
-  filter(PRIORITE == "PRIM")
 
 # Clip rivers to Quebec boundary and add rivers to connect outlets
 # Recommended to be done in GIS software
@@ -52,12 +53,12 @@ rivers <- read_sf("")
 rivers <- import_rivers(rivers)
 
 # Detect topological errors
-# Should be corrected then rerun until no errors remain
 rivers_err <- enforce_dendritic(rivers, correct = FALSE)
 # Export river errors
 st_write(rivers_err, "")
 # Import final corrected rivers
 rivers <- read_sf("")
+# Should be corrected then rerun until no errors remain
 
 ##### Prepare barriers & outlet #####
 
@@ -134,24 +135,27 @@ rivers <- rivers %>%
   # Compute agricultural penalty
   mutate(
     penalty_agr = case_when(
-      agr_mean < 10 ~ 0,
-      agr_mean >= 10 & agr_mean < 30 ~ 0.2,
-      agr_mean >= 30 & agr_mean < 50 ~ 0.5,
-      agr_mean >= 50 & agr_mean < 80 ~ 0.8,
-      agr_mean >= 80 ~ 0.9
+      agr_mean < 30 ~ 0,
+      agr_mean >= 30 & agr_mean < 50 ~ 0.1,
+      agr_mean >= 50 & agr_mean < 70 ~ 0.2,
+      agr_mean >= 70 & agr_mean < 90 ~ 0.3,
+      agr_mean >= 90 ~ 0.4
     )
   ) %>%
   # Compute urban penalty
   mutate(
     penalty_urb = case_when(
-      ant_mean > 0 & ant_mean < 10 ~ 0.1,
-      ant_mean >= 10 & ant_mean < 30 ~ 0.3,
-      ant_mean >= 30 & ant_mean < 50 ~ 0.6,
-      ant_mean >= 50 ~ 0.9
+      ant_mean < 30 ~ 0,
+      ant_mean >= 30 & ant_mean < 50 ~ 0.2,
+      ant_mean >= 50 & ant_mean < 70 ~ 0.3,
+      ant_mean >= 70 & ant_mean < 90 ~ 0.4,
+      ant_mean >= 90 ~ 0.5
     )
   ) %>%
   # Combine penalties to get weighting
-  mutate(weight = 1 - (penalty_urb + penalty_agr))
+  mutate(weight = 1 - (penalty_urb + penalty_agr)) %>%
+  # Set minimum weight to 0.05
+  mutate(weight = pmax(weight, 0.05))
 
 # Set imagined outlet line weights to 0
 # These should be identified with a unique variable, in this case it's "included"
@@ -181,13 +185,13 @@ rivers <- rivers %>%
 # Compute invasive habitat quality based on original quality measure
 rivers <- rivers %>%
   # 0% restoration
-  mutate(weight_inv_0 = if_else(weight_0 > 0.9, 1, weight_0 + 0.1)) %>%
+  mutate(weight_inv_0 = pmin(weight_0 + 0.1, 1)) %>%
   # 25% restoration
-  mutate(weight_inv_25 = if_else(weight_25 > 0.9, 1, weight_25 + 0.1)) %>%
+  mutate(weight_inv_25 = pmin(weight_25 + 0.1, 1)) %>%
   # 50% restoration
-  mutate(weight_50 = if_else(weight_50 > 0.9, 1, weight_50 + 0.1)) %>%
+  mutate(weight_inv_50 = pmin(weight_50 + 0.1, 1)) %>%
   # 75% restoration
-  mutate(weight_75 = if_else(weight_75 > 0.9, 1, weight_75 + 0.1))
+  mutate(weight_inv_75 = pmin(weight_75 + 0.1, 1))
 
 ##### Calculate connectivity #####
 

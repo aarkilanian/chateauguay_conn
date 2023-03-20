@@ -1,7 +1,7 @@
 ---
 title: "River Connectivity Analysis User Guide"
-author: "Alex Arkilanian"
-date: "10/14/2022"
+author: "Alex Arkilanian - a.arkilanian@gmail.com"
+date: "15/03/2023"
 output: pdf_document
 urlcolor: blue
 ---
@@ -70,12 +70,11 @@ require(dci)
 
 ```{r fig.height=11, fig.width=16}
 # Read in rivers
-grhq_raw <- read_sf("data/chat_data.gpkg", layer = "grhq_raw") %>%
+grhq_raw <- read_sf("data/inputs.gpkg", layer = "GRHQ_full") %>%
   # Discard Z dimension (sf cannot work with Z or M data)
   st_zm() %>%
   # Filter rivers with ENABLED set to 1
   filter(ENABLED == 1) %>%
-  # Filter rivers with PRIORITE set to PRIM
   filter(PRIORITE == "PRIM")
 
 # Plot the raw rivers
@@ -92,19 +91,17 @@ There are 3 types of barrier data which are considered and each come from a sepa
 
 ```{r}
 # Read in dams
-dams_raw <- read_sf("data/chat_data.gpkg", layer = "dams_raw") %>%
+dams_raw <- read_sf("data/inputs.gpkg", layer = "MELCC_dams") %>%
   # Match river data projection
   st_transform(st_crs(grhq_raw))
 
 # Read in culverts
-culverts_raw <- read_sf("data/chat_data.gpkg", layer = "culverts_raw") %>%
+culverts_raw <- read_sf("data/inputs.gpkg", layer = "MTQ_culverts") %>%
   # Match river data projection
   st_transform(st_crs(grhq_raw))
 
 # Read in waterfalls
-falls_raw <- read_sf("data/chat_data.gpkg", layer = "falls_raw") %>%
-  # Match river data projection
-  st_transform(st_crs(grhq_raw))
+# There are no waterfalls listed in the database for this watershed
 ```
 
 ```{r fig.height=9, fig.width=14}
@@ -112,7 +109,6 @@ falls_raw <- read_sf("data/chat_data.gpkg", layer = "falls_raw") %>%
 plot(st_geometry(grhq_raw), col = "grey50")
 plot(st_geometry(dams_raw), col = "red", add = T, pch = 16)
 plot(st_geometry(culverts_raw), col = "blue", add = T, pch = 16)
-plot(st_geometry(falls_raw), col = "green", add = T, pch = 16)
 ```
 
 As is obvious visually many barriers lie outside the Chateauguay watershed because of the ways in which data are packaged from the different sources. In addition, the southern part of the watershed does not have any data because that region of the watershed is found in the USA. In the next section of this guide the data will be cleaned and prepared for connectivity analyses.
@@ -146,7 +142,7 @@ This filtering requires a spatial layer of the boundaries of the province of Que
 
 ```{r eval=FALSE}
 # Read in Quebec boundary
-qc_extent <- read_sf("data/chat_data.gpkg", layer = "qc_extent") %>%
+qc_extent <- read_sf("data/inputs.gpkg", layer = "QC_boundary") %>%
   # Match river project
   st_transform(st_crs(grhq_raw))
 
@@ -160,7 +156,7 @@ This clipping operation in R or another GIS system will leave only the rivers no
 
 ```{r fig.height=9, fig.width=14}
 # Read in clipped rivers
-grhq_clipped <- read_sf("data/chat_data.gpkg", layer = "grhq_clipped")
+grhq_clipped <- read_sf("data/intermediate.gpkg", layer = "GRHQ_clipped")
 
 # Plot result of clipping
 plot(st_geometry(grhq_raw), col = "red")
@@ -179,7 +175,7 @@ Below is the result of this outlet correction for the Chateauguay watershed. In 
 
 ```{r echo = FALSE}
 # Read in rivers with outlets joined
-grhq_clean <- read_sf("data/chat_data.gpkg", layer = "grhq_outlets")
+grhq_clean <- read_sf("data/intermediate.gpkg", layer = "GRHQ_w_outlet")
 
 # Plot added lines
 plot(st_geometry(grhq_clean), col = 'red')
@@ -265,19 +261,8 @@ dams <- dams_raw %>%
   # Select relevant columns
   select(original_id, type, pass, geom)
 
-falls <- falls_raw %>%
-  # Rename ID
-  rename("original_id" = "ID_RHP") %>%
-  mutate(original_id = as.character(original_id)) %>%
-  # Assign culvert type
-  mutate(type = "falls") %>%
-  # Assign passability
-  mutate(pass = 0) %>%
-  # Select relevant columns
-  select(original_id, type, pass, geom)
-
 # 2. Merge barriers to a single data object
-all_bar <- bind_rows(culverts, dams, falls)
+all_bar <- bind_rows(culverts, dams)
 
 # 3. Remove duplicate barriers
 # This step along with step 4 are performed in QGIS for simplicity
@@ -289,7 +274,7 @@ all_bar <- bind_rows(culverts, dams, falls)
 # points to snap
 
 # Read back barriers after QGIS operations
-all_bar <- read_sf("data/chat_data.gpkg", layer = "all_bars")
+all_bar <- read_sf("data/intermediate.gpkg", layer = "bars_final")
 glimpse(all_bar)
 
 # 5. Import barriers to dci
@@ -298,7 +283,7 @@ chat_bars <- import_points(all_bar, "barriers")
 
 ```{r}
 # Load corrected rivers
-riv_final <- read_sf("data/chat_data.gpkg", layer = "grhq_final")
+riv_final <- read_sf("data/intermediate.gpkg", layer = "GRHQ_corrected")
 
 # Plot final barriers
 plot(st_geometry(riv_final), col = "grey50")
@@ -311,7 +296,7 @@ The outlet data consists of a single point. Once multiple outlets of the watersh
 
 ```{r}
 # Read in outlet
-out <- read_sf("data/chat_data.gpkg", layer = "outlet")
+out <- read_sf("data/intermediate.gpkg", layer = "outlet")
 
 # Import outlet
 chat_out <- import_points(out, "outlet")
@@ -332,7 +317,7 @@ In this guide, land use is used as a proxy for habitat quality which serves as o
 
 ```{r}
 # Load rivers with land use variables summarized across them
-grhq_weighted <- read_sf("data/chat_data.gpkg", layer = "grhq_crhq_join")
+grhq_weighted <- read_sf("data/intermediate.gpkg", layer = "GRHQ_CRHQ_joined")
 
 # Plot urban land use
 plot(grhq_weighted["ant_mean"])
@@ -593,8 +578,8 @@ barriers <- sf::st_as_sf(activate(chat_net, nodes)) %>%
 
 ```{r}
 # Load computed DCI results
-chat_res_riv <- read_sf("data/chat_res.gpkg", layer = "rivers")
-chat_res_bar <- read_sf("data/chat_res.gpkg", layer = "barriers")
+chat_res_riv <- read_sf("data/results.gpkg", layer = "rivers_results")
+chat_res_bar <- read_sf("data/results.gpkg", layer = "barriers_results")
 ```
 
 These final results have a column for each of the 12 calculated connectivity metrics. They follow an intuitive 3 part construction separated by underscores. The first element indicates this is a DCI measure, the second element indicates the type of connectivity measured (`pot` for potamodromous, `dia` for diadromous which is the invasive connectivity measure, and `thr` for thresholded potamodromous), and the third element indicates the level of restoration either 0%, 25%, 50%, or 75%.
